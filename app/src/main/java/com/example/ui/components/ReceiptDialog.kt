@@ -45,9 +45,11 @@ fun ReceiptDialog(
       modifier = Modifier
         .fillMaxWidth(0.95f)
         .padding(16.dp)
-        .clip(RoundedCornerShape(16.dp)),
+        .clip(RoundedCornerShape(24.dp)),
+      shape = RoundedCornerShape(24.dp),
       color = MaterialTheme.colorScheme.surface,
-      tonalElevation = 6.dp
+      tonalElevation = 6.dp,
+      border = androidx.compose.foundation.BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
       Column(
         modifier = Modifier

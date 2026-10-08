@@ -246,11 +246,11 @@ private fun PaymentMethodReportTab(
     verticalArrangement = Arrangement.spacedBy(14.dp)
   ) {
     item {
-      Card(
+      ClayCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        shape = RoundedCornerShape(20.dp),
+        backgroundColor = ClayColors.CardWhite,
+        elevation = 4.dp
       ) {
         Column(modifier = Modifier.padding(16.dp)) {
           Text(
@@ -270,10 +270,11 @@ private fun PaymentMethodReportTab(
     }
 
     items(methodGroups) { (method, sum, percent) ->
-      Card(
+      ClayCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        shape = RoundedCornerShape(18.dp),
+        backgroundColor = ClayColors.CardWhite,
+        elevation = 3.dp
       ) {
         Column(modifier = Modifier.padding(14.dp)) {
           Row(
@@ -329,10 +330,11 @@ private fun DailyTimelineReportTab(
     } else {
       items(dateGroups) { (date, paymentList) ->
         val dayTotal = paymentList.sumOf { it.amount }
-        Card(
+        ClayCard(
           modifier = Modifier.fillMaxWidth(),
-          shape = RoundedCornerShape(12.dp),
-          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+          shape = RoundedCornerShape(18.dp),
+          backgroundColor = ClayColors.CardWhite,
+          elevation = 3.dp
         ) {
           Column(modifier = Modifier.padding(14.dp)) {
             Row(

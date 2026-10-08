@@ -31,10 +31,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
           cache: 'gradle'
 
@@ -52,11 +52,19 @@ jobs:
           fi
 
       - name: Setup Firebase Configuration
+        env:
+          GOOGLE_SERVICES_SECRET: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
-          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
-            echo "Writing app/google-services.json from GitHub Secrets..."
-            echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > app/google-services.json
-          elif [ ! -f "app/google-services.json" ]; then
+          mkdir -p app
+          if [ -n "$GOOGLE_SERVICES_SECRET" ]; then
+            echo "Setting up app/google-services.json from GitHub Secrets..."
+            # Check if secret is base64 encoded
+            if echo "$GOOGLE_SERVICES_SECRET" | base64 -d >/dev/null 2>&1 && [[ "$GOOGLE_SERVICES_SECRET" != *"{"* ]]; then
+              echo "$GOOGLE_SERVICES_SECRET" | base64 -d > app/google-services.json
+            else
+              echo "$GOOGLE_SERVICES_SECRET" > app/google-services.json
+            fi
+          elif [ ! -s "app/google-services.json" ]; then
             echo "app/google-services.json not found in repository; writing fallback configuration..."
             cat << 'EOF' > app/google-services.json
 {
@@ -108,15 +116,23 @@ jobs:
 }
 EOF
           fi
+          echo "Verified app/google-services.json (size: $(wc -c < app/google-services.json) bytes):"
+          head -n 5 app/google-services.json
 
       - name: Prepare Signing Keystores (Release & Debug)
         id: setup_keystore
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          STORE_PASSWORD_SECRET: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD_SECRET: ${{ secrets.KEY_PASSWORD }}
         run: |
           # 1. Setup debug.keystore (required by debugConfig)
           if [ -f "debug.keystore.base64" ]; then
             echo "Decoding debug.keystore from debug.keystore.base64..."
-            base64 --decode debug.keystore.base64 > debug.keystore
-          elif [ ! -f "debug.keystore" ]; then
+            base64 -d debug.keystore.base64 > debug.keystore 2>/dev/null || base64 --decode debug.keystore.base64 > debug.keystore
+          fi
+
+          if [ ! -s "debug.keystore" ]; then
             echo "Generating debug.keystore for debug builds..."
             keytool -genkeypair -v \
               -keystore debug.keystore \
@@ -128,15 +144,21 @@ EOF
               -keypass android \
               -dname "CN=Android Debug, O=Android, C=US"
           fi
+          # Duplicate to app/ folder to guarantee path resolution
+          cp debug.keystore app/debug.keystore 2>/dev/null || true
 
-          # 2. Setup release keystore (my-upload-key.jks)
-          if [ -n "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ]; then
+          # 2. Determine release keystore passwords with reliable defaults
+          STORE_PASS="${STORE_PASSWORD_SECRET:-android123}"
+          KEY_PASS="${KEY_PASSWORD_SECRET:-android123}"
+
+          # 3. Setup release keystore (my-upload-key.jks)
+          if [ -n "$RELEASE_KEYSTORE_BASE64" ]; then
             echo "Using custom release keystore from GitHub Secrets..."
-            echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > my-upload-key.jks
-          elif [ ! -f "my-upload-key.jks" ]; then
-            echo "Generating release keystore for build artifact..."
-            STORE_PASS="${{ secrets.STORE_PASSWORD || 'android123' }}"
-            KEY_PASS="${{ secrets.KEY_PASSWORD || 'android123' }}"
+            echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > my-upload-key.jks 2>/dev/null || echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > my-upload-key.jks
+          fi
+
+          if [ ! -s "my-upload-key.jks" ]; then
+            echo "Generating release keystore (my-upload-key.jks)..."
             keytool -genkeypair -v \
               -keystore my-upload-key.jks \
               -alias upload \
@@ -147,14 +169,25 @@ EOF
               -keypass "$KEY_PASS" \
               -dname "CN=TuitionLedger, OU=Release, O=TutorUtility, L=City, ST=State, C=IN"
           fi
+          # Duplicate to app/ folder to guarantee path resolution
+          cp my-upload-key.jks app/my-upload-key.jks 2>/dev/null || true
 
-      - name: Build Release and Debug APKs
+          # Export keystore credentials globally to subsequent steps via GITHUB_ENV
+          echo "STORE_PASSWORD=$STORE_PASS" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=$KEY_PASS" >> $GITHUB_ENV
+          echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/my-upload-key.jks" >> $GITHUB_ENV
+
+      - name: Build Release APK
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/my-upload-key.jks
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD || 'android123' }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'android123' }}
+          STORE_PASSWORD: ${{ env.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ env.KEY_PASSWORD }}
         run: |
-          ./gradlew assembleRelease assembleDebug --stacktrace
+          ./gradlew assembleRelease --stacktrace --no-daemon
+
+      - name: Build Debug APK
+        run: |
+          ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Inspect Build Artifacts
         run: |
