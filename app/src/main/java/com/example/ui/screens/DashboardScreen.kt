@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -311,7 +312,7 @@ fun DashboardScreen(
                       containerColor = ClayColors.RoseAccent,
                       contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
                     ) {
-                      Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(13.dp))
+                      Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(13.dp))
                       Spacer(modifier = Modifier.width(3.dp))
                       Text("Remind", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }

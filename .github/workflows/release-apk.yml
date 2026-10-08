@@ -51,6 +51,64 @@ jobs:
             fi
           fi
 
+      - name: Setup Firebase Configuration
+        run: |
+          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
+            echo "Writing app/google-services.json from GitHub Secrets..."
+            echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > app/google-services.json
+          elif [ ! -f "app/google-services.json" ]; then
+            echo "app/google-services.json not found in repository; writing fallback configuration..."
+            cat << 'EOF' > app/google-services.json
+{
+  "project_info": {
+    "project_number": "178832773306",
+    "project_id": "gen-lang-client-0339105045",
+    "storage_bucket": "gen-lang-client-0339105045.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:178832773306:android:441e818caa984f5f04f283",
+        "android_client_info": {
+          "package_name": "com.managment.tutorfee"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "178832773306-6kssf5rgfnlocekerkdhbe2gfv982tml.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.managment.tutorfee",
+            "certificate_hash": "648b0a132c3a1ca76aafda410f2cd374d5bf818a"
+          }
+        },
+        {
+          "client_id": "178832773306-597qdfa7i8mpdvdunp7p8grmq53vsdao.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAaUl1WtgIEDIdq-Fm2HM1axgprZyXNB7A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "178832773306-597qdfa7i8mpdvdunp7p8grmq53vsdao.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+EOF
+          fi
+
       - name: Prepare Signing Keystores (Release & Debug)
         id: setup_keystore
         run: |

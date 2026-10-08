@@ -54,7 +54,7 @@ fun SignInScreen(
 
     coroutineScope.launch {
       try {
-        val webClientId = context.getString(R.string.default_web_client_id)
+        val webClientId = getWebClientId(context)
         val credentialManager = CredentialManager.create(context)
         
         val signInOption = GetSignInWithGoogleOption.Builder(webClientId)
@@ -272,5 +272,18 @@ private fun FeatureHighlightRow(
         color = TextSecondaryMuted
       )
     }
+  }
+}
+
+private fun getWebClientId(context: Context): String {
+  val resId = context.resources.getIdentifier("default_web_client_id", "string", context.packageName)
+  return if (resId != 0) {
+    try {
+      context.getString(resId)
+    } catch (_: Exception) {
+      "178832773306-597qdfa7i8mpdvdunp7p8grmq53vsdao.apps.googleusercontent.com"
+    }
+  } else {
+    "178832773306-597qdfa7i8mpdvdunp7p8grmq53vsdao.apps.googleusercontent.com"
   }
 }
