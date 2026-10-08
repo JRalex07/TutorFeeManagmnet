@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidStudent(data, userId) {
+      return data.userId == userId &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.monthlyFee is number && data.monthlyFee >= 0 &&
+             data.active is bool;
+    }
+
+    function isValidFeeRecord(data, userId) {
+      return data.userId == userId &&
+             data.studentId is string &&
+             data.totalAmount is number && data.totalAmount >= 0 &&
+             data.status is string;
+    }
+
+    function isValidPayment(data, userId) {
+      return data.userId == userId &&
+             data.studentId is string &&
+             data.amount is number && data.amount > 0 &&
+             data.paymentMethod is string &&
+             data.receiptNumber is string;
+    }
+
+    match /users/{userId} {
+      allow get, list: if isOwner(userId);
+      allow create, update: if isOwner(userId);
+      allow delete: if false;
+
+      match /students/{studentId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidStudent(request.resource.data, userId);
+        allow update: if isOwner(userId) && isValidStudent(request.resource.data, userId);
+        allow delete: if isOwner(userId);
+      }
+
+      match /fee_records/{recordId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidFeeRecord(request.resource.data, userId);
+        allow update: if isOwner(userId) && isValidFeeRecord(request.resource.data, userId);
+        allow delete: if isOwner(userId);
+      }
+
+      match /payments/{paymentId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidPayment(request.resource.data, userId);
+        allow update: if isOwner(userId) && isValidPayment(request.resource.data, userId);
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

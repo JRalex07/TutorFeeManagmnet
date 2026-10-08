@@ -1,0 +1,6 @@
+{
+  "name": "Tuition Fee Manager",
+  "description": "Private tuition fee collection and student ledger management application for private tutors",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
