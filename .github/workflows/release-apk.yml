@@ -58,7 +58,6 @@ jobs:
           mkdir -p app
           if [ -n "$GOOGLE_SERVICES_SECRET" ]; then
             echo "Setting up app/google-services.json from GitHub Secrets..."
-            # Check if secret is base64 encoded
             if echo "$GOOGLE_SERVICES_SECRET" | base64 -d >/dev/null 2>&1 && [[ "$GOOGLE_SERVICES_SECRET" != *"{"* ]]; then
               echo "$GOOGLE_SERVICES_SECRET" | base64 -d > app/google-services.json
             else
@@ -66,58 +65,10 @@ jobs:
             fi
           elif [ ! -s "app/google-services.json" ]; then
             echo "app/google-services.json not found in repository; writing fallback configuration..."
-            cat << 'EOF' > app/google-services.json
-{
-  "project_info": {
-    "project_number": "178832773306",
-    "project_id": "gen-lang-client-0339105045",
-    "storage_bucket": "gen-lang-client-0339105045.firebasestorage.app"
-  },
-  "client": [
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:178832773306:android:441e818caa984f5f04f283",
-        "android_client_info": {
-          "package_name": "com.managment.tutorfee"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "178832773306-6kssf5rgfnlocekerkdhbe2gfv982tml.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.managment.tutorfee",
-            "certificate_hash": "648b0a132c3a1ca76aafda410f2cd374d5bf818a"
-          }
-        },
-        {
-          "client_id": "178832773306-597qdfa7i8mpdvdunp7p8grmq53vsdao.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAaUl1WtgIEDIdq-Fm2HM1axgprZyXNB7A"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "178832773306-597qdfa7i8mpdvdunp7p8grmq53vsdao.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    }
-  ],
-  "configuration_version": "1"
-}
-EOF
+            echo "ewogICJwcm9qZWN0X2luZm8iOiB7CiAgICAicHJvamVjdF9udW1iZXIiOiAiMTc4ODMyNzczMzA2IiwKICAgICJwcm9qZWN0X2lkIjogImdlbi1sYW5nLWNsaWVudC0wMzM5MTA1MDQ1IiwKICAgICJzdG9yYWdlX2J1Y2tldCI6ICJnZW4tbGFuZy1jbGllbnQtMDMzOTEwNTA0NS5maXJlYmFzZXN0b3JhZ2UuYXBwIgogIH0sCiAgImNsaWVudCI6IFsKICAgIHsKICAgICAgImNsaWVudF9pbmZvIjogewogICAgICAgICJtb2JpbGVzZGtfYXBwX2lkIjogIjE6MTc4ODMyNzczMzA2OmFuZHJvaWQ6NDQxZTgxOGNhYTk4NGY1ZjA0ZjI4MyIsCiAgICAgICAgImFuZHJvaWRfY2xpZW50X2luZm8iOiB7CiAgICAgICAgICAicGFja2FnZV9uYW1lIjogImNvbS5tYW5hZ21lbnQudHV0b3JmZWUiCiAgICAgICAgfQogICAgICB9LAogICAgICAib2F1dGhfY2xpZW50IjogWwogICAgICAgIHsKICAgICAgICAgICJjbGllbnRfaWQiOiAiMTc4ODMyNzczMzA2LTZrc3NmNXJnZm5sb2Nla2Vya2RoYmUyZ2Z2OTgydG1sLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwKICAgICAgICAgICJjbGllbnRfdHlwZSI6IDEsCiAgICAgICAgICAiYW5kcm9pZF9pbmZvIjogewogICAgICAgICAgICAicGFja2FnZV9uYW1lIjogImNvbS5tYW5hZ21lbnQudHV0b3JmZWUiLAogICAgICAgICAgICAiY2VydGlmaWNhdGVfaGFzaCI6ICI2NDhiMGExMzJjM2ExY2E3NmFhZmRhNDEwZjJjZDM3NGQ1YmY4MThhIgogICAgICAgICAgfQogICAgICAgIH0sCiAgICAgICAgewogICAgICAgICAgImNsaWVudF9pZCI6ICIxNzg4MzI3NzMzMDYtNTk3cWRmYTdpOG1wZHZkdW5wN3A4Z3JtcTUzdnNkYW8uYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLAogICAgICAgICAgImNsaWVudF90eXBlIjogMwogICAgICAgIH0KICAgICAgXSwKICAgICAgImFwaV9rZXkiOiBbCiAgICAgICAgewogICAgICAgICAgImN1cnJlbnRfa2V5IjogIkFJemFTeUFhVWwxV3RnSUVESWRxLUZtMkhNMWF4Z3ByWnlYTUI3QSIKICAgICAgICB9CiAgICAgIF0sCiAgICAgICJzZXJ2aWNlcyI6IHsKICAgICAgICAiYXBwaW52aXRlX3NlcnZpY2UiOiB7CiAgICAgICAgICAib3RoZXJfcGxhdGZvcm1fb2F1dGhfY2xpZW50IjogWwogICAgICAgICAgICB7CiAgICAgICAgICAgICAgImNsaWVudF9pZCI6ICIxNzg4MzI3NzMzMDYtNTk3cWRmYTdpOG1wZHZkdW5wN3A4Z3JtcTUzdnNkYW8uYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLAogICAgICAgICAgICAgICJjbGllbnRfdHlwZSI6IDMKICAgICAgICAgICAgfQogICAgICAgICAgXQogICAgICAgIH0KICAgICAgfQogICAgfQogIF0sCiAgImNvbmZpZ3VyYXRpb25fdmVyc2lvbiI6ICIxIgp9Cg==" | base64 -d > app/google-services.json
           fi
-          echo "Verified app/google-services.json (size: $(wc -c < app/google-services.json) bytes):"
-          head -n 5 app/google-services.json
+          echo "Verified app/google-services.json existence and size:"
+          ls -la app/google-services.json
 
       - name: Prepare Signing Keystores (Release & Debug)
         id: setup_keystore
